@@ -1,4 +1,4 @@
-### TWM
+
 #### Transcendental Washing Machine
 
 First project with Web Audio API. 
