@@ -19,6 +19,8 @@
   <!--we set the minimum value to 0 and max to 2, while is possible to reach -3.4 and +3.4 -->
   <input type='range' id='volume' min='0' max='2' value= '1' step= '0.01'>
 
+  <!--===========GAIN KNOB==============-->
+  <input type="range" id="panner" min="-1" max="1" value="0" step="0.01">
 
 
   <script>
@@ -79,6 +81,19 @@ volumeControl.addEventListener('input',function(){
   gainNode.gain.value = this.value;
 })
 
+//============ STEREO PANNING ====================
+//we create the node using the constructor method
+const pannerOptions = { pan: 0 };
+const panner = new StereoPannerNode(audioContext, pannerOptions);
+//i'm selecting the range input
+const pannerControl = document.querySelector('#panner');
+
+pannerControl.addEventListener('input', function() {
+    panner.pan.value = this.value;
+}, false);
+
+track.connect(gainNode).connect(panner).connect(audioContext.destination);
+//we need to connect the element only once, the last 'path' will overwrite the others 
   </script>
 </body>
 </html>
