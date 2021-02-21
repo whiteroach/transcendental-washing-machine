@@ -1,99 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
- <!--===========AUDIO SAMPLE==============-->
-  <audio src="546471__cbj-student__laundrette-ambience.wav"></audio>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="main.css" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="container">
+			<div>
+				<!--===========AUDIO SAMPLE==============-->
+				<audio src="546471__cbj-student__laundrette-ambience.wav"></audio>
+				<div>
+					<!--===========SWITCH==============-->
+					<button data-playing="false" role="switch" aria-checked="false">
+						<span>Play/Pause</span>
+					</button>
 
-  <!--===========SWITCH==============-->
-  <button data-playing='false' role='switch' aria-checked="false">
-    <span>Play/Pause</span>
-  </button>
+					<!--===========GAIN KNOB==============-->
+					<!--we set the minimum value to 0 and max to 2, while is possible to reach -3.4 and +3.4 -->
+					<input
+						type="range"
+						id="volume"
+						min="0"
+						max="2"
+						value="1"
+						step="0.01"
+					/>
 
-  <!--===========GAIN KNOB==============-->
-  <!--we set the minimum value to 0 and max to 2, while is possible to reach -3.4 and +3.4 -->
-  <input type='range' id='volume' min='0' max='2' value= '1' step= '0.01'>
+					<!--===========GAIN KNOB==============-->
+					<input
+						type="range"
+						id="panner"
+						min="-1"
+						max="1"
+						value="0"
+						step="0.01"
+					/>
 
-  <!--===========GAIN KNOB==============-->
-  <input type="range" id="panner" min="-1" max="1" value="0" step="0.01">
+					<!--============DELAY==============-->
+					<button id="delay">Delay</button>
+				</div>
+			</div>
+		</div>
 
+		<!--JAVASCRIPT-->
+		<script>
+			//Creating an instance of the audio context
+			// const AudioContext = window.AudioContext || window.webkitAudioContext;
 
-  <script>
-  //Creating an instance of the audio context
-    // const AudioContext = window.AudioContext || window.webkitAudioContext;
+			const audioContext = new AudioContext();
 
-const audioContext = new AudioContext();
+			//Get the audio element
+			const audioElement = document.querySelector("audio");
 
-//Get the audio element 
-const audioElement = document.querySelector('audio');
+			//Pass it to the audio context (create a an Audio node)
 
-//Pass it to the audio context (create a an Audio node)
+			const track = audioContext.createMediaElementSource(audioElement);
 
-const track = audioContext.createMediaElementSource(audioElement);
+			//connecting the audio node to the destination (standard output)
 
-//connecting the audio node to the destination (standard output)
+			track.connect(audioContext.destination);
 
-track.connect(audioContext.destination);
+			//=================== ADD PLAY/PAUSE functionality ===================
+			//select the play button
+			const playButton = document.querySelector("button");
 
-//=================== ADD PLAY/PAUSE functionality ===================
-//select the play button
-const playButton = document.querySelector('button');
+			playButton.addEventListener(
+				"click",
+				function () {
+					//check if context is in suspended state (autoplay policy)
+					if (audioContext.state === "suspended") {
+						audioContext.resume();
+					}
 
-playButton.addEventListener('click',function(){
-//check if context is in suspended state (autoplay policy)
-if(audioContext.state === 'suspended') {
-  audioContext.resume();
-}
+					//play or pause track depending on state
 
-//play or pause track depending on state
+					if (this.dataset.playing === "false") {
+						audioElement.play();
+						this.dataset.playing = "true";
+					} else if (this.dataset.playing == "true") {
+						audioElement.pause();
+						this.dataset.playing = "false";
+					}
+				},
+				false
+			);
 
-if (this.dataset.playing === 'false'){
-  audioElement.play();
-  this.dataset.playing = 'true';
-}else if(this.dataset.playing == 'true'){
-  audioElement.pause();
-  this.dataset.playing = 'false';
-}
-},false);
+			audioElement.addEventListener(
+				"ended",
+				() => {
+					playButton.dataset.playing = "false";
+				},
+				false
+			);
 
-audioElement.addEventListener('ended', () => {
-  playButton.dataset.playing = 'false';
-}, false);
+			//============ GAIN NODE ====================
+			//there are two ways to create a node in W.A.API Factory method (audioContext.createGain()) or via constructor (new GainNode())
+			const gainNode = audioContext.createGain();
+			//now we need to update the audio-graph connecting the input->gain->output(destination)
 
-//============ GAIN NODE ====================
-//there are two ways to create a node in W.A.API Factory method (audioContext.createGain()) or via constructor (new GainNode())
-const gainNode = audioContext.createGain();
-//now we need to update the audio-graph connecting the input->gain->output(destination)
+			track.connect(gainNode).connect(audioContext.destination);
 
-track.connect(gainNode).connect(audioContext.destination);
+			// the default value for gain is 1, the minimum is -3.4 and max 3.4
 
-// the default value for gain is 1, the minimum is -3.4 and max 3.4
+			//select the 'knob'
+			const volumeControl = document.querySelector("#volume");
 
-//select the 'knob' 
-const volumeControl = document.querySelector('#volume');
+			volumeControl.addEventListener("input", function () {
+				gainNode.gain.value = this.value;
+			});
 
-volumeControl.addEventListener('input',function(){
-  gainNode.gain.value = this.value;
-})
+			//============ STEREO PANNING ====================
+			//we create the node using the constructor method
+			const pannerOptions = { pan: 0 };
+			const panner = new StereoPannerNode(audioContext, pannerOptions);
+			//i'm selecting the range input
+			const pannerControl = document.querySelector("#panner");
 
-//============ STEREO PANNING ====================
-//we create the node using the constructor method
-const pannerOptions = { pan: 0 };
-const panner = new StereoPannerNode(audioContext, pannerOptions);
-//i'm selecting the range input
-const pannerControl = document.querySelector('#panner');
+			pannerControl.addEventListener(
+				"input",
+				function () {
+					panner.pan.value = this.value;
+				},
+				false
+			);
 
-pannerControl.addEventListener('input', function() {
-    panner.pan.value = this.value;
-}, false);
+			track.connect(gainNode).connect(panner).connect(audioContext.destination);
+			//we need to connect the element only once, the last 'path' will overwrite the others
 
-track.connect(gainNode).connect(panner).connect(audioContext.destination);
-//we need to connect the element only once, the last 'path' will overwrite the others 
-  </script>
-</body>
+			//DELAY
+			const delay = audioElement.createDelay(10.0);
+			let delayButton = document.querySelector("#delay");
+			delayButton.addEventListener("click", () => {
+				track
+					.connect(gainNode)
+					.connect(panner)
+					.connect(delay)
+					.connect(audioContext.destination);
+			});
+		</script>
+	</body>
 </html>
