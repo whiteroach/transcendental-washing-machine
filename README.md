@@ -1,6 +1,6 @@
 
 ### Web-Audio-Api 
-
+---
 First project with Web Audio API. 
 
 At the moment is a bare application of the concepts learned from this tutorial :
