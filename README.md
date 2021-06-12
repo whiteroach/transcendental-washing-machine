@@ -1,6 +1,6 @@
 
 ### Web-Audio-Api 
----
+
 First project with Web Audio API. 
 
 At the moment is a bare application of the concepts learned from this tutorial :
@@ -8,6 +8,6 @@ At the moment is a bare application of the concepts learned from this tutorial :
 
 ##### The sample is taken from : [freesound.org](https://freesound.org/people/Sokol_Soundworks/sounds/478453/)
 ---
-#### Technology:
+#### Technologies:
 * Html
 * Css
